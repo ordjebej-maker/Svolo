@@ -1,0 +1,173 @@
+package ru.nekostul.aicompanion.entity.inventory;
+
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.core.BlockPos;
+import ru.nekostul.aicompanion.entity.CompanionEntity;
+import ru.nekostul.aicompanion.entity.movement.CompanionMovementSpeed;
+import ru.nekostul.aicompanion.entity.resource.CompanionResourceRequest;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public final class CompanionDeliveryController {
+    private static final double DELIVERY_RANGE_SQR = 9.0D;
+    private static final int DELIVERY_COOLDOWN_TICKS = 10;
+    private static final double DELIVERY_SPEED_BLOCKS_PER_TICK = 0.35D;
+
+    private final CompanionEntity owner;
+    private final CompanionInventory inventory;
+    private int deliveredCount;
+    private long nextDeliverTick;
+    private List<ItemStack> pendingDrops;
+    private int pendingDropIndex;
+    private BlockPos lastMoveTarget;
+    private long lastMoveAttemptTick = -1L;
+
+    public CompanionDeliveryController(CompanionEntity owner, CompanionInventory inventory) {
+        this.owner = owner;
+        this.inventory = inventory;
+    }
+
+    public void startDelivery() {
+        deliveredCount = 0;
+        nextDeliverTick = -1L;
+        pendingDrops = null;
+        pendingDropIndex = 0;
+        resetMoveTracking();
+    }
+
+    public void startDelivery(List<ItemStack> drops) {
+        deliveredCount = 0;
+        nextDeliverTick = -1L;
+        resetMoveTracking();
+        if (drops == null || drops.isEmpty()) {
+            pendingDrops = null;
+            pendingDropIndex = 0;
+            return;
+        }
+        pendingDrops = new ArrayList<>();
+        for (ItemStack stack : drops) {
+            if (!stack.isEmpty()) {
+                pendingDrops.add(stack);
+            }
+        }
+        pendingDropIndex = 0;
+    }
+
+    public boolean tickDelivery(CompanionResourceRequest request, Player player, long gameTime) {
+        if (request == null || player == null) {
+            resetMoveTracking();
+            return false;
+        }
+        if (deliveredCount >= request.getAmount()) {
+            resetMoveTracking();
+            return true;
+        }
+        Vec3 target = player.position();
+        if (owner.distanceToSqr(target) > DELIVERY_RANGE_SQR) {
+            if (shouldIssueMoveTo(target, gameTime)) {
+                owner.getNavigation().moveTo(target.x, target.y, target.z, speedModifierFor(DELIVERY_SPEED_BLOCKS_PER_TICK));
+                rememberMoveTo(target, gameTime);
+            }
+            return false;
+        }
+        if (!owner.getNavigation().isDone()) {
+            owner.getNavigation().stop();
+        }
+        resetMoveTracking();
+        if (gameTime < nextDeliverTick) {
+            return false;
+        }
+        nextDeliverTick = gameTime + DELIVERY_COOLDOWN_TICKS;
+        int remaining = request.getAmount() - deliveredCount;
+        List<ItemStack> toDrop = inventory.takeMatching(request.getResourceType()::matchesItem, remaining);
+        int dropped = dropStacksNearPlayer(player, toDrop);
+        deliveredCount += dropped;
+        return deliveredCount >= request.getAmount();
+    }
+
+    public boolean tickDeliveryStacks(Player player, long gameTime) {
+        if (player == null) {
+            resetMoveTracking();
+            return false;
+        }
+        if (pendingDrops == null || pendingDropIndex >= pendingDrops.size()) {
+            resetMoveTracking();
+            return true;
+        }
+        Vec3 target = player.position();
+        if (owner.distanceToSqr(target) > DELIVERY_RANGE_SQR) {
+            if (shouldIssueMoveTo(target, gameTime)) {
+                owner.getNavigation().moveTo(target.x, target.y, target.z, speedModifierFor(DELIVERY_SPEED_BLOCKS_PER_TICK));
+                rememberMoveTo(target, gameTime);
+            }
+            return false;
+        }
+        if (!owner.getNavigation().isDone()) {
+            owner.getNavigation().stop();
+        }
+        resetMoveTracking();
+        if (gameTime < nextDeliverTick) {
+            return false;
+        }
+        nextDeliverTick = gameTime + DELIVERY_COOLDOWN_TICKS;
+        ItemStack stack = pendingDrops.get(pendingDropIndex);
+        if (!stack.isEmpty()) {
+            dropStacksNearPlayer(player, List.of(stack));
+        }
+        pendingDropIndex++;
+        return pendingDropIndex >= pendingDrops.size();
+    }
+
+    private int dropStacksNearPlayer(Player player, List<ItemStack> stacks) {
+        int dropped = 0;
+        for (ItemStack stack : stacks) {
+            if (stack.isEmpty()) {
+                continue;
+            }
+            dropped += stack.getCount();
+            double offsetX = (owner.getRandom().nextDouble() - 0.5D) * 0.4D;
+            double offsetZ = (owner.getRandom().nextDouble() - 0.5D) * 0.4D;
+            ItemEntity entity = new ItemEntity(player.level(),
+                    player.getX() + offsetX,
+                    player.getY() + 0.5D,
+                    player.getZ() + offsetZ,
+                    stack);
+            entity.setDefaultPickUpDelay();
+            CompanionDropTracker.markDropped(entity, owner.getUUID());
+            player.level().addFreshEntity(entity);
+        }
+        return dropped;
+    }
+
+    private boolean shouldIssueMoveTo(Vec3 target, long gameTime) {
+        if (target == null) {
+            return false;
+        }
+        BlockPos targetBlock = BlockPos.containing(target);
+        if (lastMoveTarget == null || !lastMoveTarget.equals(targetBlock)) {
+            return true;
+        }
+        if (!owner.getNavigation().isDone()) {
+            return false;
+        }
+        return lastMoveAttemptTick < 0L || gameTime - lastMoveAttemptTick >= DELIVERY_COOLDOWN_TICKS;
+    }
+
+    private void rememberMoveTo(Vec3 target, long gameTime) {
+        lastMoveTarget = target != null ? BlockPos.containing(target) : null;
+        lastMoveAttemptTick = gameTime;
+    }
+
+    private void resetMoveTracking() {
+        lastMoveTarget = null;
+        lastMoveAttemptTick = -1L;
+    }
+
+    private double speedModifierFor(double desiredSpeed) {
+        return CompanionMovementSpeed.strictByAttribute(owner, desiredSpeed);
+    }
+}

@@ -3,6 +3,7 @@ package ru.nekostul.aicompanion.entity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import ru.nekostul.aicompanion.aiproviders.AiProviderRouter;
 import ru.nekostul.aicompanion.aiproviders.yandexgpt.YandexGptClient;
 
 import java.util.Locale;
@@ -44,7 +45,7 @@ final class CompanionAiChatController {
             return true;
         }
         CompletableFuture
-                .supplyAsync(() -> YandexGptClient.ask(player, prompt))
+                .supplyAsync(() -> AiProviderRouter.ask(player, prompt))
                 .thenAccept(result -> completeOnServerThread(playerId, result))
                 .exceptionally(error -> {
                     completeOnServerThread(playerId, null);

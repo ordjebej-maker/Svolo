@@ -56,6 +56,34 @@ public final class CompanionConfig {
                     "If disabled or oreharvester is missing, NPC uses default mining logic.")
             .define("oreharvester_integration", true);
 
+    public static final ForgeConfigSpec.ConfigValue<String> AI_PROVIDER = BUILDER
+            .comment("AI provider: ollama (local, free) or yandexgpt (cloud API).")
+            .defineInList("ai.provider", "ollama", List.of("ollama", "yandexgpt"));
+
+    public static final ForgeConfigSpec.ConfigValue<String> OLLAMA_BASE_URL = BUILDER
+            .comment("Base URL of the local Ollama server.")
+            .define("ai.ollama.baseUrl", "http://127.0.0.1:11434");
+
+    public static final ForgeConfigSpec.ConfigValue<String> OLLAMA_MODEL = BUILDER
+            .comment("Local Ollama model tag. Recommended starting point: qwen3:4b.")
+            .define("ai.ollama.model", "qwen3:4b");
+
+    public static final ForgeConfigSpec.DoubleValue AI_TEMPERATURE = BUILDER
+            .comment("Sampling temperature used by the local AI provider.")
+            .defineInRange("ai.temperature", 0.4D, 0.0D, 2.0D);
+
+    public static final ForgeConfigSpec.IntValue AI_MAX_TOKENS = BUILDER
+            .comment("Maximum generated tokens for ordinary AI requests.")
+            .defineInRange("ai.maxTokens", 512, 16, 4096);
+
+    public static final ForgeConfigSpec.IntValue OLLAMA_CONNECT_TIMEOUT_MS = BUILDER
+            .comment("Connection timeout for local Ollama requests (ms).")
+            .defineInRange("ai.ollama.connectTimeoutMs", 5000, 500, 60000);
+
+    public static final ForgeConfigSpec.IntValue OLLAMA_READ_TIMEOUT_MS = BUILDER
+            .comment("Response timeout for local Ollama requests (ms).")
+            .defineInRange("ai.ollama.readTimeoutMs", 120000, 1000, 600000);
+
     public static final ForgeConfigSpec.BooleanValue YANDEX_GPT_ENABLED = BUILDER
             .comment("Enable YandexGPT chat for NPC.")
             .define("ai.yandexgpt.enabled", true);
@@ -128,6 +156,34 @@ public final class CompanionConfig {
 
     public static boolean isOreHarvesterIntegrationEnabled() {
         return OREHARVESTER_INTEGRATION.get();
+    }
+
+    public static String getAiProvider() {
+        return AI_PROVIDER.get();
+    }
+
+    public static String getOllamaBaseUrl() {
+        return OLLAMA_BASE_URL.get();
+    }
+
+    public static String getOllamaModel() {
+        return OLLAMA_MODEL.get();
+    }
+
+    public static double getAiTemperature() {
+        return AI_TEMPERATURE.get();
+    }
+
+    public static int getAiMaxTokens() {
+        return AI_MAX_TOKENS.get();
+    }
+
+    public static int getOllamaConnectTimeoutMs() {
+        return OLLAMA_CONNECT_TIMEOUT_MS.get();
+    }
+
+    public static int getOllamaReadTimeoutMs() {
+        return OLLAMA_READ_TIMEOUT_MS.get();
     }
 
     public static boolean isYandexGptEnabled() {

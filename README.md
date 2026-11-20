@@ -143,3 +143,31 @@ MIT
 ## Автор
 
 **nekostul**
+
+
+## Local language model through Ollama
+
+Ollama is the default AI provider. It runs a model locally on the player's computer and does not require a paid API key.
+
+1. Install Ollama for Windows: https://ollama.com/download/windows
+2. Open PowerShell and download the starter model:
+
+   ```powershell
+   ollama pull qwen3:4b
+   ```
+
+3. Make sure Ollama is running. Its local HTTP API is normally available at `http://127.0.0.1:11434`.
+4. Launch Minecraft with the mod. Settings are stored in `config/aicompanion-common.toml`.
+
+Main settings:
+
+- `ai.provider = "ollama"` — use the local model.
+- `ai.ollama.baseUrl = "http://127.0.0.1:11434"` — Ollama address.
+- `ai.ollama.model = "qwen3:4b"` — model tag installed in Ollama.
+- `ai.temperature` — response variability.
+- `ai.maxTokens` — generation length limit.
+- `ai.ollama.connectTimeoutMs` and `ai.ollama.readTimeoutMs` — connection and response timeouts.
+
+To switch back to the previous cloud provider, set `ai.provider = "yandexgpt"` and configure the existing YandexGPT parameters.
+
+Note: at this stage, a short conversation history is kept only in process memory. Persistent memory across game restarts will be implemented in a later milestone.

@@ -16,6 +16,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
 import ru.nekostul.aicompanion.CompanionConfig;
+import ru.nekostul.aicompanion.aiproviders.AiProviderRouter;
 import ru.nekostul.aicompanion.aiproviders.yandexgpt.YandexGptClient;
 import ru.nekostul.aicompanion.entity.command.CompanionCommandParser;
 import ru.nekostul.aicompanion.entity.home.CompanionHomeAssessmentController;
@@ -410,7 +411,7 @@ final class CompanionTaskCoordinator {
             return true;
         }
         CompletableFuture
-                .supplyAsync(() -> YandexGptClient.interpretCommand(player, rawMessage))
+                .supplyAsync(() -> AiProviderRouter.interpretCommand(player, rawMessage))
                 .thenAccept(result -> completeAiCommandInterpretationOnServerThread(playerId, rawMessage, result))
                 .exceptionally(error -> {
                     completeAiCommandInterpretationOnServerThread(playerId, rawMessage, null);
@@ -582,7 +583,7 @@ final class CompanionTaskCoordinator {
             return;
         }
         CompletableFuture
-                .supplyAsync(() -> YandexGptClient.reviewHomeAssessment(player, payloadAfterFollowUp))
+                .supplyAsync(() -> AiProviderRouter.reviewHomeAssessment(player, payloadAfterFollowUp))
                 .thenAccept(result -> completeAiHomeReviewOnServerThread(playerId, payloadAfterFollowUp, result))
                 .exceptionally(error -> {
                     completeAiHomeReviewOnServerThread(playerId, payloadAfterFollowUp, null);

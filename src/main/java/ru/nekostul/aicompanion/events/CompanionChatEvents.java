@@ -10,6 +10,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
 import ru.nekostul.aicompanion.AiCompanionMod;
+import ru.nekostul.aicompanion.aiproviders.AiProviderRouter;
 import ru.nekostul.aicompanion.aiproviders.yandexgpt.YandexGptClient;
 import ru.nekostul.aicompanion.entity.CompanionEntity;
 import ru.nekostul.aicompanion.entity.CompanionSingleNpcManager;
@@ -183,7 +184,7 @@ public final class CompanionChatEvents {
             return true;
         }
         CompletableFuture
-                .supplyAsync(() -> YandexGptClient.interpretCommand(player, payload))
+                .supplyAsync(() -> AiProviderRouter.interpretCommand(player, payload))
                 .thenAccept(result -> PENDING_CHAT_REPLIES.add(
                         () -> completeAiInterpretation(player, companion, message, result)))
                 .exceptionally(error -> {

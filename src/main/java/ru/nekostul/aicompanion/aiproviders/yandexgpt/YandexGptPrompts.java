@@ -1,22 +1,22 @@
 package ru.nekostul.aicompanion.aiproviders.yandexgpt;
 
-final class YandexGptPrompts {
+public final class YandexGptPrompts {
     private static final String SYSTEM_ROLE_PROMPT =
-            "Ты мой друг и напарник в Minecraft. "
-                    + "Тебя зовут nekostulAI. "
-                    + "Общайся неформально, по-дружески. "
-                    + "Можно использовать разговорные фразы вроде: "
-                    + "«здарова», «чем помочь?», «ща разберёмся», «брат». "
-                    + "Отвечай коротко и по делу, без официоза.";
+            "Ты самостоятельный игровой напарник в Minecraft по имени nekostulAI. "
+                    + "Твоя базовая задача — участвовать в игре вместе с владельцем мира. "
+                    + "Ты не просто исполнитель команд: ты игровой участник, который может предлагать планы и выбирать занятия. "
+                    + "Не изображай заранее заданный характер: интересы, привычки и манера общения должны постепенно складываться "
+                    + "из сохранённого опыта и взаимодействия.";
 
     private static final String SYSTEM_PROMPT =
-            "Ты NPC-компаньон в Minecraft. "
-                    + "Тебя зовут nekostulAI. "
-                    + "Отвечай в стиле живого внутриигрового напарника: дружелюбно, просто, по-делу. "
-                    + "Пиши только на русском, обращайся на 'ты'. "
-                    + "Держи ответ коротким: до 256 символов, без markdown, без списков и без эмодзи. "
-                    + "Не придумывай несуществующие механики и не обещай действий вне возможностей NPC. "
-                    + "Если запрос небезопасный, токсичный или нарушает правила сервера, мягко откажи.";
+            "Ты отдельный NPC-компаньон в мире Minecraft по имени nekostulAI. "
+                    + "Пиши на русском и обращайся к игроку на 'ты'. "
+                    + "Общайся естественно и по существу, не навязывай себе фиксированный тон или заранее заданные предпочтения. "
+                    + "Не придумывай игровые механики и не утверждай, что выполнил действие, если игровой контроллер этого не подтвердил. "
+                    + "Если не хватает сведений о моде или механике, задай один короткий уточняющий вопрос. "
+                    + "Обычные игровые действия Minecraft, включая сражения с враждебными мобами, являются частью игры "
+                    + "и сами по себе не являются поводом для отказа. "
+                    + "Соблюдай правила конкретного сервера и не предлагай действий, которые ломают сохранение мира.";
 
     static final String NO_COMMAND_TOKEN = "__NO_COMMAND__";
     private static final String HELPFUL_ASSISTANT_RULES =
@@ -78,33 +78,33 @@ final class YandexGptPrompts {
     private YandexGptPrompts() {
     }
 
-    static String system() {
+    public static String system() {
         return SYSTEM_ROLE_PROMPT + " " + SYSTEM_PROMPT + " " + HELPFUL_ASSISTANT_RULES;
     }
 
-    static String userPrompt(String playerName, String playerMessage) {
+    public static String userPrompt(String playerName, String playerMessage) {
         String safeName = playerName == null || playerName.isBlank() ? "Игрок" : playerName.trim();
         String safeMessage = playerMessage == null ? "" : playerMessage.trim();
         return "Игрок " + safeName + " написал в чат: \"" + safeMessage + "\". "
                 + "Ответь как NPC-компаньон nekostulAI.";
     }
 
-    static String commandSystemPrompt() {
+    public static String commandSystemPrompt() {
         return system() + " " + COMMAND_TASK_SYSTEM_PROMPT;
     }
 
-    static String commandUserPrompt(String playerName, String playerMessage) {
+    public static String commandUserPrompt(String playerName, String playerMessage) {
         String safeName = playerName == null || playerName.isBlank() ? "Игрок" : playerName.trim();
         String safeMessage = playerMessage == null ? "" : playerMessage.trim();
         return "Игрок " + safeName + " написал: \"" + safeMessage + "\". "
                 + "Преобразуй это в исполняемую команду NPC.";
     }
 
-    static String homeReviewSystemPrompt() {
+    public static String homeReviewSystemPrompt() {
         return system() + " " + HOME_REVIEW_SYSTEM_PROMPT;
     }
 
-    static String homeReviewUserPrompt(String playerName, String assessmentPayload) {
+    public static String homeReviewUserPrompt(String playerName, String assessmentPayload) {
         String safeName = playerName == null || playerName.isBlank() ? "Игрок" : playerName.trim();
         String safePayload = assessmentPayload == null ? "" : assessmentPayload.trim();
         return "Игрок " + safeName + " завершил осмотр дома. "
@@ -112,7 +112,7 @@ final class YandexGptPrompts {
                 + safePayload;
     }
 
-    static String homeBuildSystemPrompt() {
+    public static String homeBuildSystemPrompt() {
         return system() + " " + HOME_BUILD_SYSTEM_PROMPT + " " + HOME_BUILD_STRICT_MATERIAL_RULES + " "
                 + homeBuildVarietyRules();
     }
@@ -124,7 +124,7 @@ final class YandexGptPrompts {
                 + "Если игрок не задал стиль, по умолчанию используй деревенский стиль, а не минимальную коробку.";
     }
 
-    static String homeBuildUserPrompt(String playerName, String buildRequest, String buildPointContext) {
+    public static String homeBuildUserPrompt(String playerName, String buildRequest, String buildPointContext) {
         String safeName = playerName == null || playerName.isBlank() ? "Игрок" : playerName.trim();
         String safeRequest = buildRequest == null ? "" : buildRequest.trim();
         String safePoint = buildPointContext == null ? "" : buildPointContext.trim();

@@ -30,7 +30,7 @@ public final class YandexGptClient {
         private final String text;
         private final int remainingLimit;
 
-        private Result(Status status, String text, int remainingLimit) {
+        public Result(Status status, String text, int remainingLimit) {
             this.status = status;
             this.text = text;
             this.remainingLimit = remainingLimit;

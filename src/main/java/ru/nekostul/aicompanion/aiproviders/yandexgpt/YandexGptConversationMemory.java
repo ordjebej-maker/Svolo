@@ -8,18 +8,18 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-final class YandexGptConversationMemory {
-    static final int MAX_MESSAGES = 15;
+public final class YandexGptConversationMemory {
+    public static final int MAX_MESSAGES = 15;
     private static final int MAX_MESSAGE_LENGTH = 512;
     private static final Map<UUID, Deque<Message>> HISTORY = new ConcurrentHashMap<>();
 
-    record Message(String role, String text) {
+    public record Message(String role, String text) {
     }
 
     private YandexGptConversationMemory() {
     }
 
-    static List<Message> snapshot(UUID playerId) {
+    public static List<Message> snapshot(UUID playerId) {
         if (playerId == null) {
             return List.of();
         }
@@ -32,11 +32,11 @@ final class YandexGptConversationMemory {
         }
     }
 
-    static void appendUser(UUID playerId, String text) {
+    public static void appendUser(UUID playerId, String text) {
         append(playerId, "user", text);
     }
 
-    static void appendAssistant(UUID playerId, String text) {
+    public static void appendAssistant(UUID playerId, String text) {
         append(playerId, "assistant", text);
     }
 
